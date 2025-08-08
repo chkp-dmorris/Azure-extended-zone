@@ -3,7 +3,7 @@ To deploy the ARM templates manually without using the Azure Marketplace, follow
 
 1. Log in to the Microsoft Azure Portal
 2. Register for the extended zone you want
-- az account set --subscription '9c3f4dac-efbc-4533-acb3-7963594e6a67'
+- az account set --subscription '9********7'
 - az edge-zones extended-zone register --extended-zone-name 'losangeles'
 - https://learn.microsoft.com/en-us/azure/extended-zones/request-access?tabs=powershell
 
