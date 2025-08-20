@@ -18,28 +18,28 @@
         "description": "The address prefixes of the virtual network"
       }
     },
-    "subnet1Name": {
+    "Subnet1Name": {
       "type": "string",
       "metadata": {
         "description": "The name of the 1st subnet"
       },
       "defaultValue": "Frontend"
     },
-    "subnet1Prefix": {
+    "Subnet1Prefix": {
       "type": "string",
       "metadata": {
         "description": "The address prefix of the 1st subnet"
       },
       "defaultValue": "10.0.1.0/24"
     },
-    "subnet2Name": {
+    "Subnet2Name": {
       "type": "string",
       "metadata": {
         "description": "The name of the 2nd subnet"
       },
       "defaultValue": "Backend"
     },
-    "subnet2Prefix": {
+    "Subnet2Prefix": {
       "type": "string",
       "metadata": {
         "description": "The address prefix of the 2nd subnet"
@@ -87,7 +87,7 @@
       {
         "name": "Local-Subnet",
         "properties": {
-          "addressPrefix": "[parameters('subnet1Prefix')]",
+          "addressPrefix": "[parameters('Subnet1Prefix')]",
           "nextHopType": "VnetLocal"
         }
       }
@@ -125,7 +125,7 @@
       "type": "Microsoft.Network/routeTables",
       "apiVersion": "2020-06-01",
       "location": "[parameters('location')]",
-      "name": "[parameters('subnet1Name')]",
+      "name": "[parameters('Subnet1Name')]",
       "properties": {
         "routes": "[variables('routesArray')]"
       }
@@ -134,7 +134,7 @@
       "type": "Microsoft.Network/routeTables",
       "apiVersion": "2020-06-01",
       "location": "[parameters('location')]",
-      "name": "[parameters('subnet2Name')]",
+      "name": "[parameters('Subnet2Name')]",
       "properties": {
         "routes": [
           {
@@ -154,8 +154,8 @@
       "name": "[parameters('virtualNetworkName')]",
       "extendedLocation": "[if(variables('isExtendedZone'), parameters('extendedLocation'), json('null'))]",
       "dependsOn": [
-        "[resourceId('Microsoft.Network/routeTables', parameters('subnet1Name'))]",
-        "[resourceId('Microsoft.Network/routeTables', parameters('subnet2Name'))]"
+        "[resourceId('Microsoft.Network/routeTables', parameters('Subnet1Name'))]",
+        "[resourceId('Microsoft.Network/routeTables', parameters('Subnet2Name'))]"
       ],
       "properties": {
         "addressSpace": {
@@ -163,20 +163,20 @@
         },
         "subnets": [
           {
-            "name": "[parameters('subnet1Name')]",
+            "name": "[parameters('Subnet1Name')]",
             "properties": {
-              "addressPrefix": "[parameters('subnet1Prefix')]",
+              "addressPrefix": "[parameters('Subnet1Prefix')]",
               "routeTable": {
-                "id": "[resourceId('Microsoft.Network/routeTables', parameters('subnet1Name'))]"
+                "id": "[resourceId('Microsoft.Network/routeTables', parameters('Subnet1Name'))]"
               }
             }
           },
           {
-            "name": "[parameters('subnet2Name')]",
+            "name": "[parameters('Subnet2Name')]",
             "properties": {
-              "addressPrefix": "[parameters('subnet2Prefix')]",
+              "addressPrefix": "[parameters('Subnet2Prefix')]",
               "routeTable": {
-                "id": "[resourceId('Microsoft.Network/routeTables', parameters('subnet2Name'))]"
+                "id": "[resourceId('Microsoft.Network/routeTables', parameters('Subnet2Name'))]"
               }
             }
           }
