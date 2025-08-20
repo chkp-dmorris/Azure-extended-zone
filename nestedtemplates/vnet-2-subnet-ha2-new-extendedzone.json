@@ -1,4 +1,3 @@
-
 {
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
@@ -99,11 +98,10 @@
   "resources": [
     {
       "type": "Microsoft.Network/networkSecurityGroups",
-      "condition": "[parameters('deployNSG')]",
+      "condition": "[parameters('deployNsg')]",
       "apiVersion": "2020-06-01",
       "location": "[parameters('location')]",
       "name": "[parameters('NewNsgName')]",
-      "extendedLocation": "[if(variables('isExtendedZone'), parameters('extendedLocation'), json('null'))]",
       "properties": {
         "securityRules": [
           {
@@ -128,7 +126,6 @@
       "apiVersion": "2020-06-01",
       "location": "[parameters('location')]",
       "name": "[parameters('Subnet1Name')]",
-      "extendedLocation": "[if(variables('isExtendedZone'), parameters('extendedLocation'), json('null'))]",
       "properties": {
         "routes": "[variables('routesArray')]"
       }
@@ -138,7 +135,6 @@
       "apiVersion": "2020-06-01",
       "location": "[parameters('location')]",
       "name": "[parameters('Subnet2Name')]",
-      "extendedLocation": "[if(variables('isExtendedZone'), parameters('extendedLocation'), json('null'))]",
       "properties": {
         "routes": [
           {
