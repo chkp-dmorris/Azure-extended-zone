@@ -63,6 +63,7 @@
     },
     "extendedLocation": {
       "type": "object",
+      "defaultValue": {},
       "metadata": {
         "description": "Extended location object for edge zones deployment"
       }
@@ -112,13 +113,13 @@
               "sourceAddressPrefix": "*",
               "destinationAddressPrefix": "*",
               "access": "Allow",
-              "priority": "100",
+              "priority": 100,
               "direction": "Inbound"
             }
           }
         ]
       },
-      "tags": "[ if(contains(parameters('tagsByResource'), 'Microsoft.Network/networkSecurityGroups'), parameters('tagsByResource')['Microsoft.Network/networkSecurityGroups'], json('{}')) ]"
+      "tags": "[if(contains(parameters('tagsByResource'), 'Microsoft.Network/networkSecurityGroups'), parameters('tagsByResource')['Microsoft.Network/networkSecurityGroups'], json('{}'))]"
     },
     {
       "type": "Microsoft.Network/routeTables",
@@ -128,7 +129,7 @@
       "properties": {
         "routes": "[variables('routesArray')]"
       },
-      "tags": "[ if(contains(parameters('tagsByResource'), 'Microsoft.Network/routeTables'), parameters('tagsByResource')['Microsoft.Network/routeTables'], json('{}')) ]"
+      "tags": "[if(contains(parameters('tagsByResource'), 'Microsoft.Network/routeTables'), parameters('tagsByResource')['Microsoft.Network/routeTables'], json('{}'))]"
     },
     {
       "type": "Microsoft.Network/routeTables",
@@ -146,7 +147,7 @@
           }
         ]
       },
-      "tags": "[ if(contains(parameters('tagsByResource'), 'Microsoft.Network/routeTables'), parameters('tagsByResource')['Microsoft.Network/routeTables'], json('{}')) ]"
+      "tags": "[if(contains(parameters('tagsByResource'), 'Microsoft.Network/routeTables'), parameters('tagsByResource')['Microsoft.Network/routeTables'], json('{}'))]"
     },
     {
       "type": "Microsoft.Network/virtualNetworks",
@@ -183,7 +184,7 @@
           }
         ]
       },
-      "tags": "[ if(contains(parameters('tagsByResource'), 'Microsoft.Network/virtualNetworks'), parameters('tagsByResource')['Microsoft.Network/virtualNetworks'], json('{}')) ]"
+      "tags": "[if(contains(parameters('tagsByResource'), 'Microsoft.Network/virtualNetworks'), parameters('tagsByResource')['Microsoft.Network/virtualNetworks'], json('{}'))]"
     }
   ],
   "outputs": {
