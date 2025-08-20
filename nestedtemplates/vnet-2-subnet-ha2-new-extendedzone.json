@@ -1,4 +1,3 @@
-
 {
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
@@ -19,28 +18,28 @@
         "description": "The address prefixes of the virtual network"
       }
     },
-    "Subnet1Name": {
+    "subnet1Name": {
       "type": "string",
       "metadata": {
         "description": "The name of the 1st subnet"
       },
       "defaultValue": "Frontend"
     },
-    "Subnet1Prefix": {
+    "subnet1Prefix": {
       "type": "string",
       "metadata": {
         "description": "The address prefix of the 1st subnet"
       },
       "defaultValue": "10.0.1.0/24"
     },
-    "Subnet2Name": {
+    "subnet2Name": {
       "type": "string",
       "metadata": {
         "description": "The name of the 2nd subnet"
       },
       "defaultValue": "Backend"
     },
-    "Subnet2Prefix": {
+    "subnet2Prefix": {
       "type": "string",
       "metadata": {
         "description": "The address prefix of the 2nd subnet"
@@ -88,7 +87,7 @@
       {
         "name": "Local-Subnet",
         "properties": {
-          "addressPrefix": "[parameters('Subnet1Prefix')]",
+          "addressPrefix": "[parameters('subnet1Prefix')]",
           "nextHopType": "VnetLocal"
         }
       }
@@ -99,11 +98,10 @@
   "resources": [
     {
       "type": "Microsoft.Network/networkSecurityGroups",
-      "condition": "[parameters('deployNSG')]",
+      "condition": "[parameters('deployNsg')]",
       "apiVersion": "2020-06-01",
       "location": "[parameters('location')]",
       "name": "[parameters('NewNsgName')]",
-      "extendedLocation": "[if(variables('isExtendedZone'), parameters('extendedLocation'), json('null'))]",
       "properties": {
         "securityRules": [
           {
@@ -127,8 +125,7 @@
       "type": "Microsoft.Network/routeTables",
       "apiVersion": "2020-06-01",
       "location": "[parameters('location')]",
-      "name": "[parameters('Subnet1Name')]",
-      "extendedLocation": "[if(variables('isExtendedZone'), parameters('extendedLocation'), json('null'))]",
+      "name": "[parameters('subnet1Name')]",
       "properties": {
         "routes": "[variables('routesArray')]"
       }
@@ -137,8 +134,7 @@
       "type": "Microsoft.Network/routeTables",
       "apiVersion": "2020-06-01",
       "location": "[parameters('location')]",
-      "name": "[parameters('Subnet2Name')]",
-      "extendedLocation": "[if(variables('isExtendedZone'), parameters('extendedLocation'), json('null'))]",
+      "name": "[parameters('subnet2Name')]",
       "properties": {
         "routes": [
           {
@@ -158,8 +154,8 @@
       "name": "[parameters('virtualNetworkName')]",
       "extendedLocation": "[if(variables('isExtendedZone'), parameters('extendedLocation'), json('null'))]",
       "dependsOn": [
-        "[resourceId('Microsoft.Network/routeTables', parameters('Subnet1Name'))]",
-        "[resourceId('Microsoft.Network/routeTables', parameters('Subnet2Name'))]"
+        "[resourceId('Microsoft.Network/routeTables', parameters('subnet1Name'))]",
+        "[resourceId('Microsoft.Network/routeTables', parameters('subnet2Name'))]"
       ],
       "properties": {
         "addressSpace": {
@@ -167,20 +163,20 @@
         },
         "subnets": [
           {
-            "name": "[parameters('Subnet1Name')]",
+            "name": "[parameters('subnet1Name')]",
             "properties": {
-              "addressPrefix": "[parameters('Subnet1Prefix')]",
+              "addressPrefix": "[parameters('subnet1Prefix')]",
               "routeTable": {
-                "id": "[resourceId('Microsoft.Network/routeTables', parameters('Subnet1Name'))]"
+                "id": "[resourceId('Microsoft.Network/routeTables', parameters('subnet1Name'))]"
               }
             }
           },
           {
-            "name": "[parameters('Subnet2Name')]",
+            "name": "[parameters('subnet2Name')]",
             "properties": {
-              "addressPrefix": "[parameters('Subnet2Prefix')]",
+              "addressPrefix": "[parameters('subnet2Prefix')]",
               "routeTable": {
-                "id": "[resourceId('Microsoft.Network/routeTables', parameters('Subnet2Name'))]"
+                "id": "[resourceId('Microsoft.Network/routeTables', parameters('subnet2Name'))]"
               }
             }
           }
