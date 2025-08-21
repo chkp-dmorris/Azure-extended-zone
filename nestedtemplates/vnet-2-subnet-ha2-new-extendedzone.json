@@ -96,69 +96,11 @@
   },
   "resources": [
     {
-      "type": "Microsoft.Network/networkSecurityGroups",
-      "condition": "[parameters('deployNSG')]",
-      "apiVersion": "2020-06-01",
-      "location": "[parameters('location')]",
-      "extendedLocation": "[if(empty(parameters('extendedLocation')), null(), parameters('extendedLocation'))]",
-      "name": "[parameters('NewNsgName')]",
-      "properties": {
-        "securityRules": [
-          {
-            "name": "AllowAllInBound",
-            "properties": {
-              "description": "Allow all inbound connections",
-              "protocol": "*",
-              "sourcePortRange": "*",
-              "destinationPortRange": "*",
-              "sourceAddressPrefix": "*",
-              "destinationAddressPrefix": "*",
-              "access": "Allow",
-              "priority": 100,
-              "direction": "Inbound"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "type": "Microsoft.Network/routeTables",
-      "apiVersion": "2020-06-01",
-      "location": "[parameters('location')]",
-      "extendedLocation": "[if(empty(parameters('extendedLocation')), null(), parameters('extendedLocation'))]",
-      "name": "[parameters('Subnet1Name')]",
-      "properties": {
-        "routes": "[variables('routesArray')]"
-      }
-    },
-    {
-      "type": "Microsoft.Network/routeTables",
-      "apiVersion": "2020-06-01",
-      "location": "[parameters('location')]",
-      "extendedLocation": "[if(empty(parameters('extendedLocation')), null(), parameters('extendedLocation'))]",
-      "name": "[parameters('Subnet2Name')]",
-      "properties": {
-        "routes": [
-          {
-            "name": "To-Internet",
-            "properties": {
-              "addressPrefix": "0.0.0.0/0",
-              "nextHopType": "None"
-            }
-          }
-        ]
-      }
-    },
-    {
       "type": "Microsoft.Network/virtualNetworks",
       "apiVersion": "2020-06-01",
       "location": "[parameters('location')]",
       "extendedLocation": "[if(empty(parameters('extendedLocation')), null(), parameters('extendedLocation'))]",
       "name": "[parameters('virtualNetworkName')]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/routeTables', parameters('Subnet1Name'))]",
-        "[resourceId('Microsoft.Network/routeTables', parameters('Subnet2Name'))]"
-      ],
       "properties": {
         "addressSpace": {
           "addressPrefixes": "[parameters('virtualNetworkAddressPrefixes')]"
@@ -167,19 +109,13 @@
           {
             "name": "[parameters('Subnet1Name')]",
             "properties": {
-              "addressPrefix": "[parameters('Subnet1Prefix')]",
-              "routeTable": {
-                "id": "[resourceId('Microsoft.Network/routeTables', parameters('Subnet1Name'))]"
-              }
+              "addressPrefix": "[parameters('Subnet1Prefix')]"
             }
           },
           {
             "name": "[parameters('Subnet2Name')]",
             "properties": {
-              "addressPrefix": "[parameters('Subnet2Prefix')]",
-              "routeTable": {
-                "id": "[resourceId('Microsoft.Network/routeTables', parameters('Subnet2Name'))]"
-              }
+              "addressPrefix": "[parameters('Subnet2Prefix')]"
             }
           }
         ]
