@@ -14,10 +14,11 @@ To deploy the ARM templates manually without using the Azure Marketplace, follow
 7. Enter the desired template parameters
 
      Must select:
+    - R82- BYOL
     - VM size- Standard_D4_v4
     - Disk Type- StandardSSD_LRS
       
-8. Replace the "_artifacts Location" property with:
+9. Replace the "_artifacts Location" property with:
     https://raw.githubusercontent.com/CheckPointSW/CloudGuardIaaS/master/azure/templates/
-9. Select the extended zone you registered for
-10. Click Purchase to deploy the solution
+10. Select the extended zone you registered for
+11. Click Purchase to deploy the solution
