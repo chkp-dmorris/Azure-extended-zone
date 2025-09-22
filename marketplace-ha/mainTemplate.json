@@ -667,19 +667,19 @@
       "offer": "[variables('imageOffer')]",
       "publisher": "[variables('imagePublisher')]",
       "sku": "sg-byol",
-      "version": "8200.900777.1695"
+      "version": "latest"
     },
     "imageReferenceNGTPExtendedZone": {
       "offer": "[variables('imageOffer')]",
       "publisher": "[variables('imagePublisher')]",
       "sku": "sg-ngtp",
-      "version": "8200.777.1695"
+      "version": "latest"
     },
     "imageReferenceNGTXExtendedZone": {
       "offer": "[variables('imageOffer')]",
       "publisher": "[variables('imagePublisher')]",
       "sku": "sg-ngtx",
-      "version": "8200.900777.1695"
+      "version": "latest"
     },
     "imageReferenceMarketplace": "[if(equals(variables('offer'), 'BYOL'), if(not(equals(variables('selectedZone'), 'None')), variables('imageReferenceBYOLExtendedZone'), variables('imageReferenceBYOL')), if(equals(variables('offer'), 'NGTP'), if(not(equals(variables('selectedZone'), 'None')), variables('imageReferenceNGTPExtendedZone'), variables('imageReferenceNGTP')), if(equals(variables('offer'), 'NGTX'), if(not(equals(variables('selectedZone'), 'None')), variables('imageReferenceNGTXExtendedZone'), variables('imageReferenceNGTX')), if(equals(variables('offer'), 'NGTP-V2'), variables('imageReferenceNGTP-V2'), if(equals(variables('offer'), 'NGTX-V2'), variables('imageReferenceNGTX-V2'), json('null'))))))]",
     "customImage": "customImage",
@@ -1031,7 +1031,7 @@
       "properties": {
         "mode": "Incremental",
         "templateLink": {
-          "uri": "https://raw.githubusercontent.com/chkp-dmorris/Azure-extended-zone/refs/heads/main/nestedtemplates/vnet-2-subnet-ha2-new-extendedzone1.json",
+          "uri": "https://raw.githubusercontent.com/chkp-dmorris/Azure-extended-zone/main/nestedtemplates/vnet-2-subnet-ha2-new-extendedzone.json",
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
@@ -1135,8 +1135,7 @@
         "publicIPAllocationMethod": "Static",
         "dnsSettings": {
           "domainNameLabel": "[concat(toLower(parameters('vmName')), '-', uniquestring(resourceGroup().id, deployment().name))]"
-        },
-        "publicIPPrefix": "[if(equals(parameters('publicIPPrefix'), 'yes'), variables('publicIPPrefixProperty'), json('null'))]"
+        }
       },
       "tags": "[ if(contains(parameters('tagsByResource'), 'Microsoft.Network/publicIPAddresses'), parameters('tagsByResource')['Microsoft.Network/publicIPAddresses'], json('{}')) ]"
     },
@@ -1161,8 +1160,7 @@
         "publicIPAllocationMethod": "Static",
         "dnsSettings": {
           "domainNameLabel": "[concat(toLower(parameters('vmName')), '-', copyIndex(1), '-', uniquestring(resourceGroup().id, deployment().name))]"
-        },
-        "publicIPPrefix": "[if(equals(parameters('publicIPPrefix'), 'yes'), variables('publicIPPrefixProperty'), json('null'))]"
+        }
       },
       "tags": "[ if(contains(parameters('tagsByResource'), 'Microsoft.Network/publicIPAddresses'), parameters('tagsByResource')['Microsoft.Network/publicIPAddresses'], json('{}')) ]"
     },
@@ -1183,8 +1181,7 @@
         "publicIPAllocationMethod": "Static",
         "dnsSettings": {
           "domainNameLabel": "[concat(toLower(parameters('vmName')), '-vip-', uniquestring(resourceGroup().id, deployment().name))]"
-        },
-        "publicIPPrefix": "[if(equals(parameters('publicIPPrefix'), 'yes'), variables('publicIPPrefixProperty'), json('null'))]"
+        }
       },
       "tags": "[ if(contains(parameters('tagsByResource'), 'Microsoft.Network/publicIPAddresses'), parameters('tagsByResource')['Microsoft.Network/publicIPAddresses'], json('{}')) ]"
     },
@@ -1209,8 +1206,7 @@
         "publicIPAllocationMethod": "Static",
         "dnsSettings": {
           "domainNameLabel": "[concat(toLower(parameters('vmName')), 'vip', copyIndex(1), '-', uniquestring(resourceGroup().id, deployment().name))]"
-        },
-        "publicIPPrefix": "[if(equals(parameters('publicIPPrefix'), 'yes'), variables('publicIPPrefixProperty'), json('null'))]"
+        }
       },
       "tags": "[ if(contains(parameters('tagsByResource'), 'Microsoft.Network/publicIPAddresses'), parameters('tagsByResource')['Microsoft.Network/publicIPAddresses'], json('{}')) ]"
     },
@@ -1221,7 +1217,8 @@
         "[coalesce(resourceId('Microsoft.Resources/deployments', 'networkNewSetup'), resourceId('Microsoft.Resources/deployments', 'networkNewSetupExtendedZone'), resourceId('Microsoft.Resources/deployments', 'networkExistingSetup'))]",
         "[variables('elbId')]",
         "[variables('gwPublicIPIds')[0]]",
-        "[variables('haPublicIPId')]"
+        "[variables('haPublicIPId')]",
+        "[if(equals(parameters('extendedZone'), 'None'), resourceId('Microsoft.Resources/deployments', 'networkNewSetup'), resourceId('Microsoft.Resources/deployments', 'networkNewSetupExtendedZone'))]"
       ],
       "location": "[variables('location')]",
       "extendedLocation": "[if(empty(variables('extendedLocation')), null(), variables('extendedLocation'))]",
@@ -1241,7 +1238,8 @@
       "dependsOn": [
         "[coalesce(resourceId('Microsoft.Resources/deployments', 'networkNewSetup'), resourceId('Microsoft.Resources/deployments', 'networkNewSetupExtendedZone'), resourceId('Microsoft.Resources/deployments', 'networkExistingSetup'))]",
         "[variables('elbId')]",
-        "[variables('gwPublicIPIds')[1]]"
+        "[variables('gwPublicIPIds')[1]]",
+        "[if(equals(parameters('extendedZone'), 'None'), resourceId('Microsoft.Resources/deployments', 'networkNewSetup'), resourceId('Microsoft.Resources/deployments', 'networkNewSetupExtendedZone'))]"
       ],
       "location": "[variables('location')]",
       "extendedLocation": "[if(empty(variables('extendedLocation')), null(), variables('extendedLocation'))]",
@@ -1280,7 +1278,8 @@
       "apiVersion": "2020-06-01",
       "dependsOn": [
         "[coalesce(resourceId('Microsoft.Resources/deployments', 'networkNewSetup'), resourceId('Microsoft.Resources/deployments', 'networkNewSetupExtendedZone'), resourceId('Microsoft.Resources/deployments', 'networkExistingSetup'))]",
-        "[variables('ilbId')]"
+        "[variables('ilbId')]",
+        "[if(equals(parameters('extendedZone'), 'None'), resourceId('Microsoft.Resources/deployments', 'networkNewSetup'), resourceId('Microsoft.Resources/deployments', 'networkNewSetupExtendedZone'))]"
       ],
       "location": "[variables('location')]",
       "extendedLocation": "[if(empty(variables('extendedLocation')), null(), variables('extendedLocation'))]",
@@ -1419,10 +1418,7 @@
             "name": "LoadBalancerFrontend",
             "properties": {
               "publicIPAddress": {
-                "id": "[variables('elbPublicIPId')]",
-                "publicIPPrefix": {
-                  "id": "[if(equals(parameters('publicIPPrefix'), 'yes'), variables('usepublicIPPrefix'), json('null'))]"
-                }
+                "id": "[variables('elbPublicIPId')]"
               }
             }
           }
