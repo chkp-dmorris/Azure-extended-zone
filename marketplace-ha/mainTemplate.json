@@ -375,7 +375,8 @@
     "templateVersion": "20240904",
     "location": "[parameters('location')]",
     "extendedZoneRegionMap": {
-      "losangeles": ["westus"]
+      "losangeles": ["westus"],
+      "perth": ["australiaeast"]
     },
     "isExtendedZoneValid": "[if(equals(parameters('extendedZone'), 'None'), bool('true'), contains(variables('extendedZoneRegionMap')[parameters('extendedZone')], variables('location')))]",
     "selectedZone": "[if(and(not(equals(parameters('extendedZone'), 'None')), variables('isExtendedZoneValid')), parameters('extendedZone'), 'None')]",
