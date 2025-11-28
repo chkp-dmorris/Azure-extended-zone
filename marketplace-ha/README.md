@@ -20,7 +20,9 @@ To deploy the ARM templates manually without using the Azure Marketplace, follow
       
 9. Replace the "_artifacts Location" property with:
     https://raw.githubusercontent.com/CheckPointSW/CloudGuardIaaS/master/azure/templates/
-10. Select the extended zone you registered for
+10. Select the extended zone you registered for:
+   - If you select 'losangeles' as the extended zone, you must select 'West US' as the region.
+   - If you select 'perth' as the extended zone, you must select 'Australia East' as the region.
 11. Click Purchase to deploy the solution
 
 # Manual Deployment Steps
@@ -44,7 +46,9 @@ To deploy the ARM templates manually without using the Azure Marketplace, follow
       
 9. Replace the "_artifacts Location" property with:
     https://raw.githubusercontent.com/CheckPointSW/CloudGuardIaaS/master/azure/templates/
-10. Select the extended zone you registered for
+10. Select the extended zone you registered for:
+   - If you select 'losangeles' as the extended zone, you must select 'West US' as the region.
+   - If you select 'perth' as the extended zone, you must select 'Australia East' as the region.
 11. Click Purchase to deploy the solution
 
 # Check Point CloudGuard Network Security High Availability for Azure
