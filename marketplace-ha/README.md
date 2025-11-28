@@ -11,19 +11,21 @@ To deploy the ARM templates manually without using the Azure Marketplace, follow
 4. Search for "Template deployment (deploy using custom templates)" and click "Create"
 5. Click "Build your own template in the editor"
 6. Load the "mainTemplate.json" file of the desired template and click "Save"
-7. Enter the desired template parameters
 
-     Must select:
-    - R82- BYOL
-    - VM size- Standard_D4_v4
-    - Disk Type- StandardSSD_LRS
-      
-9. Replace the "_artifacts Location" property with:
-    https://raw.githubusercontent.com/CheckPointSW/CloudGuardIaaS/master/azure/templates/
-10. Select the extended zone you registered for:
+7. Select the extended zone you registered for:
    - If you select 'losangeles' as the extended zone, you must select 'West US' as the region.
    - If you select 'perth' as the extended zone, you must select 'Australia East' as the region.
-11. Click Purchase to deploy the solution
+
+8. Enter the desired template parameters
+
+    Must select:
+   - R82- BYOL
+   - VM size- Standard_D4_v4
+   - Disk Type- StandardSSD_LRS
+      
+9. Replace the "_artifacts Location" property with:
+   https://raw.githubusercontent.com/CheckPointSW/CloudGuardIaaS/master/azure/templates/
+10. Click Purchase to deploy the solution
 
 # Manual Deployment Steps
 
@@ -37,19 +39,21 @@ To deploy the ARM templates manually without using the Azure Marketplace, follow
 4. Search for "Template deployment (deploy using custom templates)" and click "Create"
 5. Click "Build your own template in the editor"
 6. Load the "mainTemplate.json" file of the desired template and click "Save"
-7. Enter the desired template parameters
 
-     Must select:
-    - R82- BYOL
-    - VM size- Standard_D4_v4
-    - Disk Type- StandardSSD_LRS
-      
-9. Replace the "_artifacts Location" property with:
-    https://raw.githubusercontent.com/CheckPointSW/CloudGuardIaaS/master/azure/templates/
-10. Select the extended zone you registered for:
+7. Select the extended zone you registered for:
    - If you select 'losangeles' as the extended zone, you must select 'West US' as the region.
    - If you select 'perth' as the extended zone, you must select 'Australia East' as the region.
-11. Click Purchase to deploy the solution
+
+8. Enter the desired template parameters
+
+    Must select:
+   - R82- BYOL
+   - VM size- Standard_D4_v4
+   - Disk Type- StandardSSD_LRS
+      
+9. Replace the "_artifacts Location" property with:
+   https://raw.githubusercontent.com/CheckPointSW/CloudGuardIaaS/master/azure/templates/
+10. Click Purchase to deploy the solution
 
 # Check Point CloudGuard Network Security High Availability for Azure
 
