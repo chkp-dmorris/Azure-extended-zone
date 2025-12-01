@@ -16,6 +16,18 @@
       },
       "defaultValue": "[resourceGroup().location]"
     },
+    "extendedZone": {
+      "type": "string",
+      "allowedValues": [
+        "None",
+        "losangeles",
+        "perth"
+      ],
+      "defaultValue": "None",
+      "metadata": {
+        "description": "Deploy in Azure Extended Zone for ultra-low latency edge computing. Select 'losangeles' for Los Angeles Extended Zone or 'None' for standard Azure region deployment."
+      }
+    },
     "cloudGuardVersion": {
       "type": "string",
       "allowedValues": [
@@ -306,28 +318,6 @@
         "description": "IPs/CIDRs that are allowed access to the Storage Account"
       },
       "defaultValue": []
-    },
-    "availabilityZone": {
-      "type": "string",
-      "allowedValues": [
-        "1",
-        "2", 
-        "3",
-        "None",
-        "Extended:losangeles:EdgeZone",
-        "Extended:lasvegas:EdgeZone",
-        "Extended:miami:EdgeZone",
-        "Extended:phoenix:EdgeZone",
-        "Extended:dallas:EdgeZone",
-        "Extended:atlanta:EdgeZone",
-        "Extended:chicago:EdgeZone",
-        "Extended:newyork:EdgeZone",
-        "Extended:perth:EdgeZone"
-      ],
-      "defaultValue": "None",
-      "metadata": {
-        "description": "Deployment zone for the virtual machine. Select standard availability zones (1-3), extended zones, or None for no zone assignment."
-      }
     }
   },
   "variables": {
@@ -583,12 +573,9 @@
     "storageAccountType": "Standard_LRS",
     "diskSize100GB": 100,
     "diskSizeGB": "[add(parameters('additionalDiskSizeGB'), variables('diskSize100GB'))]",
-    "isExtendedZone": "[startsWith(parameters('availabilityZone'), 'Extended:')]",
-    "extendedZoneParts": "[if(variables('isExtendedZone'), split(parameters('availabilityZone'), ':'), array('', '', ''))]",
-    "extendedZoneName": "[if(variables('isExtendedZone'), variables('extendedZoneParts')[1], '')]",
-    "extendedZoneType": "[if(variables('isExtendedZone'), variables('extendedZoneParts')[2], '')]",
-    "zones": "[if(or(equals(parameters('availabilityZone'), 'None'), variables('isExtendedZone')), json('null'), array(parameters('availabilityZone')))]",
-    "extendedLocation": "[if(variables('isExtendedZone'), json(concat('{\"name\":\"', variables('extendedZoneName'), '\",\"type\":\"', variables('extendedZoneType'), '\"}')), json('null'))]",
+    "isExtendedZone": "[not(equals(parameters('extendedZone'), 'None'))]",
+    "zones": "[if(equals(parameters('extendedZone'), 'None'), createArray('1'), json('null'))]",
+    "extendedLocation": "[if(variables('isExtendedZone'), json(concat('{\"name\":\"', parameters('extendedZone'), '\",\"type\":\"EdgeZone\"}')), json('null'))]",
     "customData": "[concat('#!/usr/bin/python3 /etc/cloud_config.py\n', '\n', 'installationType=\"', variables('installationType'), '\"', '\n', 'allowUploadDownload=\"', variables('allowUploadDownload'), '\"', '\n', 'osVersion=\"', variables('osVersion'), '\"', '\n', 'templateName=\"', variables('templateName'), '\"', '\n', 'isBlink=\"', variables('isBlink'), '\"', '\n', 'templateVersion=\"', variables('templateVersion'), '\"', '\n', 'bootstrapScript64=\"', variables('bootstrapScript64'), '\"', '\n', 'location=\"', variables('location'), '\"', '\n', 'sicKey=\"', variables('sicKey'), '\"', '\n', 'managementGUIClientNetwork=\"', variables('managementGUIClientNetwork'), '\"', '\n', 'customMetrics=\"', variables('customMetrics'), '\"', '\n', 'adminShell=\"', parameters('adminShell'), '\"', '\n', 'smart1CloudToken=\"', parameters('smart1CloudToken'), '\"', '\n', 'MaintenanceModePassword=\"', parameters('MaintenanceModePasswordHash'), '\"', '\n', 'passwordHash=\"', parameters('SerialConsolePasswordHash'), '\"', '\n')]",
     "imageOffer": "[concat('check-point-cg-', toLower(variables('osVersion')))]",
     "imagePublisher": "checkpoint",
