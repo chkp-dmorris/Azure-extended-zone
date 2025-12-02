@@ -19,7 +19,7 @@
 8. Enter the desired template parameters
 
     Must select:
-   - R82- BYOL
+   - R81.20 or R82 BYOL/PAYG
    - VM size- Standard_D4_v4
    - Disk Type- StandardSSD_LRS
       
@@ -87,3 +87,7 @@ To update the cluster members with the latest Azure scripts (`azure_ha_test.py` 
      tail -f /opt/CPsuite-R82/fw1/log/azure_had.elg
      ```
    - Test failover and monitor the log.
+
+## Reference
+- Check Point Support Article: Enhancing Cloud Security with Check Point CloudGuard in Azure Extended Zones (SK184335)
+   https://support.checkpoint.com/results/sk/sk184335
