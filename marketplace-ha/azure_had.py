@@ -58,38 +58,44 @@ def is_extended_zone_resource(obj):
     """Check if a resource is in an Extended Zone"""
     if not isinstance(obj, dict):
         return False
-        
+
     # Method 1: Direct extendedLocation property
     if 'extendedLocation' in obj and obj['extendedLocation']:
         ext_loc = obj['extendedLocation']
         if isinstance(ext_loc, dict) and ext_loc.get('type') == 'EdgeZone':
             return True
-    
-    # Method 2: Check vnetExtendedLocation in properties (for network interfaces)
+
+    # Method 2: Check vnetExtendedLocation in properties
     if 'properties' in obj and isinstance(obj['properties'], dict):
         props = obj['properties']
         if 'vnetExtendedLocation' in props and props['vnetExtendedLocation']:
             vnet_ext_loc = props['vnetExtendedLocation']
-            if isinstance(vnet_ext_loc, dict) and vnet_ext_loc.get('type') == 'EdgeZone':
+            if isinstance(vnet_ext_loc, dict) and \
+                    vnet_ext_loc.get('type') == 'EdgeZone':
                 return True
-    
-    # Method 3: For network interfaces, check if the subnet has Extended Zone info
-    if (obj.get('type') == 'Microsoft.Network/networkInterfaces' and 
-          'properties' in obj and 'ipConfigurations' in obj['properties'] and 
-          obj['properties']['ipConfigurations']):
+
+    # Method 3: For network interfaces, check subnet Extended Zone info
+    if (obj.get('type') == 'Microsoft.Network/networkInterfaces' and
+            'properties' in obj and
+            'ipConfigurations' in obj['properties'] and
+            obj['properties']['ipConfigurations']):
         try:
             ip_config = obj['properties']['ipConfigurations'][0]
-            if 'properties' in ip_config and 'subnet' in ip_config['properties']:
+            if ('properties' in ip_config and
+                    'subnet' in ip_config['properties']):
                 subnet_id = ip_config['properties']['subnet']['id']
                 api_version = get_api_version(subnet_id)
                 subnet_obj = azure.arm('GET', subnet_id + api_version)[1]
-                
-                if ('extendedLocation' in subnet_obj and subnet_obj['extendedLocation']) or \
-                   ('properties' in subnet_obj and 'extendedLocation' in subnet_obj['properties'] and subnet_obj['properties']['extendedLocation']):
+
+                if (('extendedLocation' in subnet_obj and
+                        subnet_obj['extendedLocation']) or
+                    ('properties' in subnet_obj and
+                        'extendedLocation' in subnet_obj['properties'] and
+                        subnet_obj['properties']['extendedLocation'])):
                     return True
         except Exception:
             pass
-    
+
     return False
 
 
@@ -104,97 +110,115 @@ def get_api_version(resource_id):
 
 
 def safe_arm_put(resource_id, body_obj, description=""):
-    """Safely perform ARM PUT operation with Extended Zone awareness and modern API versions"""
-    
+    """Safely perform ARM PUT with Extended Zone awareness"""
+
     try:
         # Convert body_obj to JSON string if it's not already
         if isinstance(body_obj, (dict, list)):
             body_json = json.dumps(body_obj)
         else:
             body_json = body_obj
-            
-        # Check if this is an Extended Zone resource and enhance the request accordingly
+
+        # Check if this is an Extended Zone resource
         extended_zone_context = None
         if isinstance(body_obj, dict):
-            # Check for Extended Zone indicators in the resource being updated
+            # Check for Extended Zone indicators
             if 'extendedLocation' in body_obj and body_obj['extendedLocation']:
                 extended_zone_context = body_obj['extendedLocation']
-                logger.info(f'Extended Zone detected for {description}: {extended_zone_context}')
-            elif ('properties' in body_obj and 'vnetExtendedLocation' in body_obj['properties'] and 
+                logger.info(f'Extended Zone detected for {description}: '
+                            f'{extended_zone_context}')
+            elif ('properties' in body_obj and
+                  'vnetExtendedLocation' in body_obj['properties'] and
                   body_obj['properties']['vnetExtendedLocation']):
-                # Convert vnetExtendedLocation to standard extendedLocation format
+                # Convert vnetExtendedLocation to extendedLocation format
                 vnet_ext_loc = body_obj['properties']['vnetExtendedLocation']
                 extended_zone_context = {
                     'name': vnet_ext_loc.get('name'),
                     'type': vnet_ext_loc.get('type')
                 }
-                logger.info(f'Extended Zone detected via vnetExtendedLocation for {description}: {extended_zone_context}')
-        
-        # If Extended Zone context is detected, try the enhanced ARM call first
+                logger.info(f'Extended Zone via vnetExtendedLocation for '
+                            f'{description}: {extended_zone_context}')
+
+        # If Extended Zone context detected, try enhanced ARM call
         if extended_zone_context:
             try:
-                logger.info(f'Attempting Enhanced Extended Zone ARM PUT for {description}')
-                logger.debug(f'Extended Zone context: {extended_zone_context}')
-                
-                # Ensure the extendedLocation is included in the request body
-                if isinstance(body_obj, dict) and 'extendedLocation' not in body_obj:
+                logger.info(f'Attempting Enhanced Extended Zone ARM PUT '
+                            f'for {description}')
+                logger.debug(f'Extended Zone context: '
+                             f'{extended_zone_context}')
+
+                # Ensure extendedLocation is in request body
+                if (isinstance(body_obj, dict) and
+                        'extendedLocation' not in body_obj):
                     body_obj_enhanced = body_obj.copy()
-                    body_obj_enhanced['extendedLocation'] = extended_zone_context
+                    body_obj_enhanced['extendedLocation'] = \
+                        extended_zone_context
                     body_json_enhanced = json.dumps(body_obj_enhanced)
                 else:
                     body_json_enhanced = body_json
-                
-                # Get appropriate API version for this resource type
+
+                # Get appropriate API version
                 api_version = get_api_version(resource_id)
-                
-                # First attempt: Try with Extended Zone context and modern API version
-                result = azure.arm('PUT', resource_id + api_version, body_json_enhanced)
-                
-                # Handle the response format - result[0] is headers dict, result[1] is data
+
+                # Try with Extended Zone context
+                result = azure.arm('PUT', resource_id + api_version,
+                                   body_json_enhanced)
+
+                # Handle response format
                 headers = result[0] if result[0] else {}
-                response_code = headers.get('code', None) if isinstance(headers, dict) else result[0]
-                
+                response_code = headers.get('code', None) if \
+                    isinstance(headers, dict) else result[0]
+
                 if str(response_code) == '200':
-                    logger.info(f'✅ Extended Zone ARM PUT succeeded for {description}')
+                    logger.info(f'✅ Extended Zone ARM PUT succeeded '
+                                f'for {description}')
                     return result[1]
                 else:
-                    logger.warning(f'Extended Zone ARM PUT failed for {description} - HTTP {response_code}')
-                    
+                    logger.warning(f'Extended Zone ARM PUT failed for '
+                                   f'{description} - HTTP {response_code}')
+
             except rest.RequestException as e:
                 if e.code == 409 and 'InvalidExtendedLocation' in str(e):
-                    logger.warning(f'Extended Zone ARM PUT failed for {description}: {e}')
-                    # Fall through to handle the Extended Zone limitation
+                    logger.warning(f'Extended Zone ARM PUT failed for '
+                                   f'{description}: {e}')
+                    # Fall through to handle limitation
                 else:
                     # Re-raise non-Extended Zone errors
                     raise
-        
-        # Standard ARM PUT operation (for non-Extended Zone resources or fallback)
+
+        # Standard ARM PUT operation
         api_version = get_api_version(resource_id)
         result = azure.arm('PUT', resource_id + api_version, body_json)
-        
-        # Handle the response format - result[0] is headers dict, result[1] is data
+
+        # Handle response format
         headers = result[0] if result[0] else {}
-        response_code = headers.get('code', None) if isinstance(headers, dict) else result[0]
-        
+        response_code = headers.get('code', None) if \
+            isinstance(headers, dict) else result[0]
+
         if str(response_code) != '200':
-            logger.error(f"Failed {description} - HTTP {response_code}: {result}")
+            logger.error(f"Failed {description} - "
+                         f"HTTP {response_code}: {result}")
             return None
         logger.info(f"✅ {description} succeeded")
         return result[1]
-        
+
     except rest.RequestException as e:
         # Handle Extended Zone specific errors
         if (e.code == 409 and 'InvalidExtendedLocation' in str(e)):
-            logger.warning('Extended Zone conflict detected for %s: %s', description, str(e))
-            logger.info('Extended Zone limitation - VIP operation cannot be performed via standard ARM API')
-            logger.info('This is a known Azure Extended Zone limitation affecting HA failover operations')
-            logger.info('Consider using Azure Support case to resolve Extended Zone ARM API compatibility')
-            
-            # For Extended Zones, return the modified object as if the operation succeeded
-            # Note: This allows the HA daemon to continue operating despite the API limitation
-            # The actual VIP movement may need to be handled differently in Extended Zones
-            logger.warning('Returning modified object to continue HA daemon operation')
-            logger.warning('Actual VIP failover may require manual intervention or Azure Support assistance')
+            logger.warning('Extended Zone conflict detected for %s: %s',
+                           description, str(e))
+            logger.info('Extended Zone limitation - VIP operation '
+                        'cannot be performed via standard ARM API')
+            logger.info('This is a known Azure Extended Zone limitation '
+                        'affecting HA failover operations')
+            logger.info('Consider using Azure Support case to resolve '
+                        'Extended Zone ARM API compatibility')
+
+            # Return modified object to continue daemon operation
+            logger.warning('Returning modified object to continue '
+                           'HA daemon operation')
+            logger.warning('Actual VIP failover may require manual '
+                           'intervention or Azure Support assistance')
             return body_obj
         else:
             # Re-raise other errors as normal
@@ -345,8 +369,9 @@ def get_vnet_id():
     vnet_id = conf.get('vnetId')
     if vnet_id:
         return vnet_id
-    me = azure.arm('GET', conf['baseId'] +
-                   'microsoft.compute/virtualmachines/' + conf['hostname'] + get_api_version(conf['baseId'] + 'microsoft.compute/virtualmachines/' + conf['hostname']))[1]
+    vm_path = (conf['baseId'] + 'microsoft.compute/virtualmachines/' +
+               conf['hostname'])
+    me = azure.arm('GET', vm_path + get_api_version(vm_path))[1]
     my_nic = get_vm_primary_nic(me)
     subnet_id = my_nic['properties']['ipConfigurations'][0][
         'properties']['subnet']['id']
@@ -609,82 +634,106 @@ def set_cluster_ips():
     logger.info('=== CLUSTER VIP FAILOVER DEBUG ===')
     logger.info('My hostname (becoming active): %s', hostname)
     logger.info('Peer hostname (current peer): %s', peername)
-    
+
     logger.debug('hostname: %s', hostname)
     vm_id = conf['baseId'] + 'microsoft.compute/virtualmachines/' + hostname
     me = azure.arm('GET', vm_id + get_api_version(vm_id))[1]
     logger.debug('%s', json.dumps(me, indent=2))
 
     logger.debug('peername: %s', peername)
-    peer_vm_id = conf['baseId'] + 'microsoft.compute/virtualmachines/' + peername
+    peer_vm_id = (conf['baseId'] +
+                  'microsoft.compute/virtualmachines/' + peername)
     peer = azure.arm('GET', peer_vm_id + get_api_version(peer_vm_id))[1]
     logger.debug('%s', json.dumps(peer, indent=2))
 
     my_nics, peer_nics = get_vm_nics(me, peer)
     logger.debug('my_nics: %s', json.dumps(my_nics, indent=2))
     logger.debug('peer_nics: %s', json.dumps(peer_nics, indent=2))
-    
+
     # Check for Extended Zone configuration
     logger.info('=== EXTENDED ZONE DETECTION ===')
     extended_zone_detected = False
     extended_zone_info = None
-    
+
     # Check both my NICs and peer NICs for Extended Zone indicators
     all_nics = []
     if isinstance(my_nics, list):
         all_nics.extend(my_nics)
     if isinstance(peer_nics, list):
         all_nics.extend(peer_nics)
-    
+
     for nic in all_nics:
         if is_extended_zone_resource(nic):
             extended_zone_detected = True
             nic_name = nic.get('name', 'unknown')
-            
+
             # Extract Extended Zone information
             if 'extendedLocation' in nic:
                 extended_zone_info = nic['extendedLocation']
-                logger.info('🚨 Extended Zone detected on %s via extendedLocation: %s', nic_name, extended_zone_info)
-            elif 'properties' in nic and 'vnetExtendedLocation' in nic['properties']:
-                extended_zone_info = nic['properties']['vnetExtendedLocation']
-                logger.info('🚨 Extended Zone detected on %s via vnetExtendedLocation: %s', nic_name, extended_zone_info)
-            
+                logger.info('🚨 Extended Zone detected on %s via '
+                            'extendedLocation: %s',
+                            nic_name, extended_zone_info)
+            elif ('properties' in nic and
+                  'vnetExtendedLocation' in nic['properties']):
+                extended_zone_info = \
+                    nic['properties']['vnetExtendedLocation']
+                logger.info('🚨 Extended Zone detected on %s via '
+                            'vnetExtendedLocation: %s',
+                            nic_name, extended_zone_info)
+
             break
-    
+
     if extended_zone_detected:
         logger.warning('⚠️ EXTENDED ZONE ENVIRONMENT DETECTED ⚠️')
         logger.warning('Extended Zone: %s', extended_zone_info)
-        logger.warning('VIP failover operations may encounter ARM API limitations')
-        logger.warning('Monitor logs for InvalidExtendedLocation errors during VIP movement')
-        logger.warning('If VIP failover fails, this is a known Azure Extended Zone limitation')
+        logger.warning('VIP failover operations may encounter '
+                       'ARM API limitations')
+        logger.warning('Monitor logs for InvalidExtendedLocation '
+                       'errors during VIP movement')
+        logger.warning('If VIP failover fails, this is a known '
+                       'Azure Extended Zone limitation')
     else:
-        logger.info('✅ Standard Azure region detected - no Extended Zone limitations expected')
-    
+        logger.info('✅ Standard Azure region detected - '
+                    'no Extended Zone limitations expected')
+
     logger.info('Starting VIP processing...')
-    
+
     # Check where cluster-vip currently exists
     logger.info('=== SEARCHING FOR CLUSTER-VIP ON BOTH NODES ===')
     try:
         for nic_name, nic_obj in [('MY', my_nics), ('PEER', peer_nics)]:
             if isinstance(nic_obj, list):
                 for i, nic in enumerate(nic_obj):
-                    logger.info('%s NIC %d (%s):', nic_name, i, nic.get('name', 'unknown'))
-                    
+                    logger.info('%s NIC %d (%s):', nic_name, i,
+                                nic.get('name', 'unknown'))
+
                     # Add Extended Zone info to NIC logging
                     if is_extended_zone_resource(nic):
                         if 'extendedLocation' in nic:
-                            logger.info('  Extended Zone: %s', nic['extendedLocation'])
-                        elif 'properties' in nic and 'vnetExtendedLocation' in nic['properties']:
-                            logger.info('  VNet Extended Zone: %s', nic['properties']['vnetExtendedLocation'])
-                    
-                    for ip_idx, ip_config in enumerate(nic.get('properties', {}).get('ipConfigurations', [])):
+                            logger.info('  Extended Zone: %s',
+                                        nic['extendedLocation'])
+                        elif ('properties' in nic and
+                              'vnetExtendedLocation' in nic['properties']):
+                            logger.info('  VNet Extended Zone: %s',
+                                        nic['properties']['vnetExtendedLocation'])
+
+                    for ip_idx, ip_config in enumerate(
+                            nic.get('properties', {}).
+                            get('ipConfigurations', [])):
                         ip_name = ip_config.get('name', 'unknown')
-                        private_ip = ip_config.get('properties', {}).get('privateIPAddress', 'none')
-                        pub_ip_obj = ip_config.get('properties', {}).get('publicIPAddress')
-                        pub_ip_id = pub_ip_obj.get('id', 'none') if pub_ip_obj else 'none'
-                        pub_ip_name = pub_ip_id.split('/')[-1] if '/' in pub_ip_id else pub_ip_id
-                        is_primary = ip_config.get('properties', {}).get('primary', False)
-                        logger.info('  [%d] %s: %s (primary=%s) public=%s', ip_idx, ip_name, private_ip, is_primary, pub_ip_name)
+                        private_ip = (ip_config.get('properties', {}).
+                                      get('privateIPAddress', 'none'))
+                        pub_ip_obj = (ip_config.get('properties', {}).
+                                      get('publicIPAddress'))
+                        pub_ip_id = (pub_ip_obj.get('id', 'none')
+                                     if pub_ip_obj else 'none')
+                        pub_ip_name = (pub_ip_id.split('/')[-1]
+                                       if '/' in pub_ip_id else pub_ip_id)
+                        is_primary = (ip_config.get('properties', {}).
+                                      get('primary', False))
+                        logger.info('  [%d] %s: %s (primary=%s) public=%s',
+                                    ip_idx, ip_name, private_ip,
+                                    is_primary, pub_ip_name)
     except Exception as e:
         logger.error('Error in VIP search: %s', str(e))
 
@@ -695,22 +744,25 @@ def set_cluster_ips():
             logger.debug(vips)
             vip_names = [vip[NAME] for vip in vips]
             logger.info('Expected VIPs for %s: %s', cni, vip_names)
-            
+
             peer_nic = get_nic_by_suffix(peer_nics, cni)
             logger.debug('peer %s: %s', cni, peer_nic)
             if not is_resource_ready(peer_nic):
                 raise StopIteration()
-                
+
             # Debug: Show actual IP configurations on both nodes
-            peer_ip_names = [ip['name'] for ip in peer_nic['properties']['ipConfigurations']]
+            peer_ip_names = [ip['name'] for ip in
+                             peer_nic['properties']['ipConfigurations']]
             logger.info('Actual IPs on peer %s: %s', cni, peer_ip_names)
-            
+
             my_nic = get_nic_by_suffix(my_nics, cni)
             if my_nic:
-                my_ip_names = [ip['name'] for ip in my_nic['properties']['ipConfigurations']]
+                my_ip_names = [ip['name'] for ip in
+                               my_nic['properties']['ipConfigurations']]
                 logger.info('Actual IPs on my %s: %s', cni, my_ip_names)
-            
-            peer_nic, flag_put, peer_index = remove_attached_vips(vip_names, peer_nic, cni)
+
+            peer_nic, flag_put, peer_index = \
+                remove_attached_vips(vip_names, peer_nic, cni)
 
             if flag_put:
                 logger.debug('Updating cluster status file with %s status', IN_PROGRESS)
@@ -887,7 +939,8 @@ def setLocalActive():
     todo = False
     try:
         if templateName in ['ha', 'ha_terraform']:
-            logger.info('Template type: %s, calling set_cluster_ips()', templateName)
+            logger.info('Template type: %s, calling set_cluster_ips()',
+                        templateName)
             todo |= set_cluster_ips()
             logger.info('set_cluster_ips() completed, todo=%s', todo)
         else:
@@ -901,7 +954,7 @@ def setLocalActive():
         logger.error('Error in setLocalActive: %s', str(e))
         logger.error('Exception details:', exc_info=True)
         raise
-        
+
     if conf.get('todo') and not todo:
         logger.info('Done')
         logger.debug('Updating cluster status file with %s status', DONE)
