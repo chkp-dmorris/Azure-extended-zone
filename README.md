@@ -23,7 +23,7 @@ To deploy the ARM templates manually without using the Azure Marketplace, follow
    - Disk Type- StandardSSD_LRS
       
 9. Replace the "_artifacts Location" property with:
-   https://raw.githubusercontent.com/CheckPointSW/CloudGuardIaaS/master/azure/templates/
+   https://raw.githubusercontent.com/chkp-dmorris/Azure-extended-zone/main/
 10. Click Purchase to deploy the solution
 
 # How to Use
