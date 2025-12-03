@@ -690,8 +690,6 @@ def set_cluster_ips():
                        'ARM API limitations')
         logger.warning('Monitor logs for InvalidExtendedLocation '
                        'errors during VIP movement')
-        logger.warning('If VIP failover fails, this is a known '
-                       'Azure Extended Zone limitation')
     else:
         logger.info('✅ Standard Azure region detected - '
                     'no Extended Zone limitations expected')
@@ -767,10 +765,21 @@ def set_cluster_ips():
             if flag_put:
                 logger.debug('Updating cluster status file with %s status', IN_PROGRESS)
                 update_cluster_status_file(IN_PROGRESS)
-                peer_nic = safe_arm_put(peer_nic['id'], peer_nic, f"peer {cni} VIP removal")
+                
+                # Check if this is an Extended Zone resource
+                is_extended_zone = is_extended_zone_resource(peer_nic)
+                
+                peer_nic_result = safe_arm_put(peer_nic['id'], peer_nic, f"peer {cni} VIP removal")
                 logger.info('After initiating removal of peer %s [%s]:\n%s', cni,
-                            peer_index, json.dumps(peer_nic, indent=2))
-                raise StopIteration()
+                            peer_index, json.dumps(peer_nic_result, indent=2))
+                
+                # For Extended Zones, if safe_arm_put returned the object (not None),
+                # it means the API limitation was hit but we should continue
+                if is_extended_zone and peer_nic_result is not None:
+                    logger.warning('Extended Zone limitation - continuing despite API error')
+                    # Don't raise StopIteration, continue to add VIP to active node
+                else:
+                    raise StopIteration()
             my_nic = get_nic_by_suffix(my_nics, cni)
             logger.debug('my %s: %s', cni, my_nic)
             if not is_resource_ready(my_nic):
@@ -828,10 +837,19 @@ def set_cluster_ips():
                         })
                     if index == (len(vips) - 1):
                         # Perform the PUT call for the new IPs only after adding all VIPs
-                        my_nic = safe_arm_put(my_nic['id'], my_nic, f"my {cni} VIP addition")
+                        is_extended_zone = is_extended_zone_resource(my_nic)
+                        
+                        my_nic_result = safe_arm_put(my_nic['id'], my_nic, f"my {cni} VIP addition")
                         logger.info('After initiating addition of my %s [%s]:\n%s',
-                                    cni, my_index, json.dumps(my_nic, indent=2))
-                        raise StopIteration()
+                                    cni, my_index, json.dumps(my_nic_result, indent=2))
+                        
+                        # For Extended Zones, if safe_arm_put returned the object (not None),
+                        # it means the API limitation was hit but we consider it successful
+                        if is_extended_zone and my_nic_result is not None:
+                            logger.warning('Extended Zone limitation - VIP move may require manual verification')
+                            # Don't raise StopIteration, consider this interface done
+                        else:
+                            raise StopIteration()
                 else:
                     logger.debug('VIP %s already exists on my NIC at index %s', vip[NAME], my_index)
         except StopIteration:
