@@ -26,7 +26,13 @@
             }
           ],
           "required": true
-        }
+        },
+        "validations": [
+          {
+            "isValid": "[or(equals(basics('extendedZone'), 'None'), and(equals(basics('extendedZone'), 'losangeles'), equals(location(), 'westus')), and(equals(basics('extendedZone'), 'perth'), equals(location(), 'australiaeast')))]",
+            "message": "Extended Zone selection is not compatible with the selected region. Los Angeles Extended Zone requires West US region, Perth Extended Zone requires Australia East region."
+          }
+        ]
       },
       {
         "name": "basics settings text block",
