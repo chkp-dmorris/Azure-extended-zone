@@ -582,6 +582,7 @@
     "isExtendedZone": "[not(equals(variables('selectedZone'), 'None'))]",
     "zones": "[if(equals(parameters('extendedZone'), 'None'), createArray('1'), json('null'))]",
     "extendedLocation": "[if(equals(parameters('extendedZone'), 'None'), json('null'), if(variables('isExtendedZoneValid'), createObject('name', variables('selectedZone'), 'type', 'EdgeZone'), createObject()))]",
+    "vmDependsOn": "[if(variables('isExtendedZone'), createArray(resourceId('Microsoft.Network/networkInterfaces/', variables('nic1Name')), resourceId('Microsoft.Network/networkInterfaces/', variables('nic2Name')), resourceId('Microsoft.Compute/images/', variables('customImage'))), createArray(resourceId('Microsoft.Storage/storageAccounts/', variables('storageAccountName')), resourceId('Microsoft.Network/networkInterfaces/', variables('nic1Name')), resourceId('Microsoft.Network/networkInterfaces/', variables('nic2Name')), resourceId('Microsoft.Compute/images/', variables('customImage'))))]",
     "customData": "[concat('#!/usr/bin/python3 /etc/cloud_config.py\n', '\n', 'installationType=\"', variables('installationType'), '\"', '\n', 'allowUploadDownload=\"', variables('allowUploadDownload'), '\"', '\n', 'osVersion=\"', variables('osVersion'), '\"', '\n', 'templateName=\"', variables('templateName'), '\"', '\n', 'isBlink=\"', variables('isBlink'), '\"', '\n', 'templateVersion=\"', variables('templateVersion'), '\"', '\n', 'bootstrapScript64=\"', variables('bootstrapScript64'), '\"', '\n', 'location=\"', variables('location'), '\"', '\n', 'sicKey=\"', variables('sicKey'), '\"', '\n', 'managementGUIClientNetwork=\"', variables('managementGUIClientNetwork'), '\"', '\n', 'customMetrics=\"', variables('customMetrics'), '\"', '\n', 'adminShell=\"', parameters('adminShell'), '\"', '\n', 'smart1CloudToken=\"', parameters('smart1CloudToken'), '\"', '\n', 'MaintenanceModePassword=\"', parameters('MaintenanceModePasswordHash'), '\"', '\n', 'passwordHash=\"', parameters('SerialConsolePasswordHash'), '\"', '\n')]",
     "imageOffer": "[concat('check-point-cg-', toLower(variables('osVersion')))]",
     "imagePublisher": "checkpoint",
@@ -908,7 +909,7 @@
     {
       "type": "Microsoft.Compute/virtualMachines",
       "apiVersion": "2021-07-01",
-      "dependsOn": "[if(variables('isExtendedZone'), createArray(resourceId('Microsoft.Network/networkInterfaces/', variables('nic1Name')), resourceId('Microsoft.Network/networkInterfaces/', variables('nic2Name')), resourceId('Microsoft.Compute/images/', variables('customImage'))), createArray(resourceId('Microsoft.Storage/storageAccounts/', variables('storageAccountName')), resourceId('Microsoft.Network/networkInterfaces/', variables('nic1Name')), resourceId('Microsoft.Network/networkInterfaces/', variables('nic2Name')), resourceId('Microsoft.Compute/images/', variables('customImage'))))]",
+      "dependsOn": "[variables('vmDependsOn')]",
       "location": "[variables('location')]",
       "zones": "[variables('zones')]",
       "extendedLocation": "[variables('extendedLocation')]",
