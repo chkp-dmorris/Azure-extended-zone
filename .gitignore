@@ -1,0 +1,11 @@
+# Ignore test script
+/test.sh
+
+# Ignore .gitignore itself
+.gitignore
+
+# Ignore macOS system files
+.DS_Store
+
+# Ignore tools folder
+tools/
