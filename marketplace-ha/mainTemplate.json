@@ -921,7 +921,7 @@
     },
     {
       "type": "Microsoft.Network/networkSecurityGroups",
-      "condition": "[and(parameters('deployNewNSG'), equals(parameters('extendedZone'), 'None'))]",
+      "condition": "[parameters('deployNewNSG')]",
       "apiVersion": "2020-06-01",
       "location": "[variables('location')]",
       "name": "[parameters('NewNsgName')]",
