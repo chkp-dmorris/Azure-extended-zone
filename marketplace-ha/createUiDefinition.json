@@ -5,18 +5,6 @@
   "parameters": {
     "basics": [
       {
-        "name": "basics settings text block",
-        "type": "Microsoft.Common.TextBlock",
-        "visible": true,
-        "options": {
-          "text": "Please follow the Check Point CloudGuard IaaS High Availability Administration Guide.",
-          "link": {
-            "label": "Administration Guide",
-            "uri": "https://sc1.checkpoint.com/documents/IaaS/WebAdminGuides/EN/CP_CloudGuard_Network_for_Azure_HA_Cluster/Default.htm"
-          }
-        }
-      },
-      {
         "name": "extendedZone",
         "type": "Microsoft.Common.DropDown",
         "label": "Extended Zone",
@@ -38,6 +26,18 @@
             }
           ],
           "required": true
+        }
+      },
+      {
+        "name": "basics settings text block",
+        "type": "Microsoft.Common.TextBlock",
+        "visible": true,
+        "options": {
+          "text": "Please follow the Check Point CloudGuard IaaS High Availability Administration Guide.",
+          "link": {
+            "label": "Administration Guide",
+            "uri": "https://sc1.checkpoint.com/documents/IaaS/WebAdminGuides/EN/CP_CloudGuard_Network_for_Azure_HA_Cluster/Default.htm"
+          }
         }
       },
       {
