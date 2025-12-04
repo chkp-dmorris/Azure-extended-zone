@@ -48,30 +48,6 @@
           "hidePassword": false
         },
         "osPlatform": "Linux"
-      },
-      {
-        "name": "extendedZone",
-        "type": "Microsoft.Common.DropDown",
-        "label": "Extended Zone",
-        "defaultValue": "None",
-        "toolTip": "Deploy in Azure Extended Zone for ultra-low latency edge computing. Select 'losangeles' for Los Angeles Extended Zone (must deploy in West US region) or 'perth' for Perth Extended Zone (must deploy in Australia East region). For Extended Zones, only R81.20, R82, and R82.10 are supported with VM size Standard_D4_v4 and disk type StandardSSD_LRS.",
-        "constraints": {
-          "allowedValues": [
-            {
-              "label": "None",
-              "value": "None"
-            },
-            {
-              "label": "Los Angeles",
-              "value": "losangeles"
-            },
-            {
-              "label": "Perth",
-              "value": "perth"
-            }
-          ],
-          "required": true
-        }
       }
     ],
     "steps": [
@@ -91,6 +67,18 @@
             "options": {
               "icon": "Info",
               "text": "See <a href='https://sc1.checkpoint.com/documents/IaaS/WebAdminGuides/EN/CP_CloudGuard_Network_for_Azure_HA_Cluster/Content/Topics-Azure-HA/Introduction.htm' target='_blank'>CloudGuard Network for Azure administration guide</a> for detailed deployment and configuration steps "
+            }
+          },
+          {
+            "name": "extendedZone",
+            "type": "Microsoft.Common.DropDown",
+            "label": "Extended Zone",
+            "defaultValue": "None",
+            "toolTip": "Deploy in Azure Extended Zone for ultra-low latency edge computing. For Extended Zones, only R81.20, R82, and R82.10 are supported with VM size Standard_D4_v4 and disk type StandardSSD_LRS.",
+            "visible": "[or(equals(location(), 'westus'), equals(location(), 'australiaeast'))]",
+            "constraints": {
+              "allowedValues": "[if(equals(location(), 'australiaeast'), parse('[{\"label\":\"None\",\"value\":\"None\"},{\"label\":\"Perth\",\"value\":\"perth\"}]'), if(equals(location(), 'westus'), parse('[{\"label\":\"None\",\"value\":\"None\"},{\"label\":\"Los Angeles\",\"value\":\"losangeles\"}]'), parse('[{\"label\":\"None\",\"value\":\"None\"}]')))]",
+              "required": true
             }
           },
           {
@@ -1990,7 +1978,7 @@
     ],
     "outputs": {
       "location": "[location()]",
-      "extendedZone": "[basics('extendedZone')]",
+      "extendedZone": "[steps('chkp').extendedZone]",
       "cloudGuardVersion": "[concat(steps('chkp').cloudGuardVersion, ' - ', coalesce(steps('chkp').R80Offer, 'Bring Your Own License'))]",
       "adminPassword": "[basics('auth').password]",
       "authenticationType": "[basics('auth').authenticationType]",
