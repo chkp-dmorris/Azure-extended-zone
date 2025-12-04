@@ -573,9 +573,15 @@
     "storageAccountType": "Standard_LRS",
     "diskSize100GB": 100,
     "diskSizeGB": "[add(parameters('additionalDiskSizeGB'), variables('diskSize100GB'))]",
-    "isExtendedZone": "[not(equals(parameters('extendedZone'), 'None'))]",
+    "extendedZoneRegionMap": {
+      "losangeles": ["westus"],
+      "perth": ["australiaeast"]
+    },
+    "isExtendedZoneValid": "[if(equals(parameters('extendedZone'), 'None'), bool('true'), contains(variables('extendedZoneRegionMap')[parameters('extendedZone')], variables('location')))]",
+    "selectedZone": "[if(and(not(equals(parameters('extendedZone'), 'None')), variables('isExtendedZoneValid')), parameters('extendedZone'), 'None')]",
+    "isExtendedZone": "[not(equals(variables('selectedZone'), 'None'))]",
     "zones": "[if(equals(parameters('extendedZone'), 'None'), createArray('1'), json('null'))]",
-    "extendedLocation": "[if(variables('isExtendedZone'), json(concat('{\"name\":\"', parameters('extendedZone'), '\",\"type\":\"EdgeZone\"}')), json('null'))]",
+    "extendedLocation": "[if(equals(variables('selectedZone'), 'None'), createObject(), createObject('name', variables('selectedZone'), 'type', 'EdgeZone'))]",
     "customData": "[concat('#!/usr/bin/python3 /etc/cloud_config.py\n', '\n', 'installationType=\"', variables('installationType'), '\"', '\n', 'allowUploadDownload=\"', variables('allowUploadDownload'), '\"', '\n', 'osVersion=\"', variables('osVersion'), '\"', '\n', 'templateName=\"', variables('templateName'), '\"', '\n', 'isBlink=\"', variables('isBlink'), '\"', '\n', 'templateVersion=\"', variables('templateVersion'), '\"', '\n', 'bootstrapScript64=\"', variables('bootstrapScript64'), '\"', '\n', 'location=\"', variables('location'), '\"', '\n', 'sicKey=\"', variables('sicKey'), '\"', '\n', 'managementGUIClientNetwork=\"', variables('managementGUIClientNetwork'), '\"', '\n', 'customMetrics=\"', variables('customMetrics'), '\"', '\n', 'adminShell=\"', parameters('adminShell'), '\"', '\n', 'smart1CloudToken=\"', parameters('smart1CloudToken'), '\"', '\n', 'MaintenanceModePassword=\"', parameters('MaintenanceModePasswordHash'), '\"', '\n', 'passwordHash=\"', parameters('SerialConsolePasswordHash'), '\"', '\n')]",
     "imageOffer": "[concat('check-point-cg-', toLower(variables('osVersion')))]",
     "imagePublisher": "checkpoint",
@@ -986,6 +992,10 @@
     "GatewayFQDN": {
       "type": "string",
       "value": "[reference(variables('publicIPAddressId')).dnsSettings.fqdn]"
+    },
+    "extendedZone": {
+      "type": "string",
+      "value": "[variables('selectedZone')]"
     }
   }
 }
