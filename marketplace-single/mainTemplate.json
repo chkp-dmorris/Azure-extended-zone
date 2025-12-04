@@ -669,7 +669,7 @@
     "publicIPAddressId": "[resourceId('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]",
     "bootstrapScript64": "[base64(parameters('bootstrapScript'))]",
     "allowUploadDownload": "[parameters('allowDownloadFromUploadToCheckPoint')]",
-    "_artifactsLocation": "[if(contains(parameters('_artifactsLocation'),'raw.githubusercontent.com/CheckPointSW/CloudGuardIaaS/master/azure/templates/marketplace'),'https://raw.githubusercontent.com/CheckPointSW/CloudGuardIaaS/master/azure/templates/',parameters('_artifactsLocation'))]",
+    "_artifactsLocation": "[if(contains(parameters('_artifactsLocation'),'raw.githubusercontent.com/CheckPointSW/CloudGuardIaaS/master/azure/templates/marketplace'),'https://raw.githubusercontent.com/CheckPointSW/CloudGuardIaaS/master/azure/templates/',if(contains(parameters('_artifactsLocation'),'raw.githubusercontent.com'),substring(parameters('_artifactsLocation'),0,lastIndexOf(parameters('_artifactsLocation'),'/')+1),parameters('_artifactsLocation')))]",
     "networkSetupURL": "[uri(variables('_artifactsLocation'), concat('../nestedtemplates/vnet-', parameters('vnetNewOrExisting'), '.json', parameters('_artifactsLocationSasToken')))]",
     "sicKey": "[parameters('sicKey')]",
     "managementGUIClientNetwork": "[parameters('managementGUIClientNetwork')]",
