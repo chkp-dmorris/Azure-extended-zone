@@ -74,10 +74,22 @@
             "type": "Microsoft.Common.DropDown",
             "label": "Extended Zone",
             "defaultValue": "None",
-            "toolTip": "Deploy in Azure Extended Zone for ultra-low latency edge computing. For Extended Zones, only R81.20, R82, and R82.10 are supported with VM size Standard_D4_v4 and disk type StandardSSD_LRS.",
-            "visible": "[or(equals(location(), 'westus'), equals(location(), 'australiaeast'))]",
+            "toolTip": "Deploy in Azure Extended Zone for ultra-low latency edge computing. Los Angeles Extended Zone requires West US region. Perth Extended Zone requires Australia East region. For Extended Zones, only R81.20, R82, and R82.10 are supported with VM size Standard_D4_v4 and disk type StandardSSD_LRS.",
             "constraints": {
-              "allowedValues": "[if(equals(location(), 'australiaeast'), parse('[{\"label\":\"None\",\"value\":\"None\"},{\"label\":\"Perth\",\"value\":\"perth\"}]'), if(equals(location(), 'westus'), parse('[{\"label\":\"None\",\"value\":\"None\"},{\"label\":\"Los Angeles\",\"value\":\"losangeles\"}]'), parse('[{\"label\":\"None\",\"value\":\"None\"}]')))]",
+              "allowedValues": [
+                {
+                  "label": "None",
+                  "value": "None"
+                },
+                {
+                  "label": "Los Angeles (requires West US region)",
+                  "value": "losangeles"
+                },
+                {
+                  "label": "Perth (requires Australia East region)",
+                  "value": "perth"
+                }
+              ],
               "required": true
             }
           },
