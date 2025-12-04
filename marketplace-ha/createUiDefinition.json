@@ -17,6 +17,30 @@
         }
       },
       {
+        "name": "extendedZone",
+        "type": "Microsoft.Common.DropDown",
+        "label": "Extended Zone",
+        "defaultValue": "None",
+        "toolTip": "Deploy in Azure Extended Zone for ultra-low latency edge computing. Los Angeles Extended Zone requires West US region. Perth Extended Zone requires Australia East region. For Extended Zones, only R81.20, R82, and R82.10 are supported with VM size Standard_D4_v4 and disk type StandardSSD_LRS.",
+        "constraints": {
+          "allowedValues": [
+            {
+              "label": "None",
+              "value": "None"
+            },
+            {
+              "label": "Los Angeles (requires West US region)",
+              "value": "losangeles"
+            },
+            {
+              "label": "Perth (requires Australia East region)",
+              "value": "perth"
+            }
+          ],
+          "required": true
+        }
+      },
+      {
         "name": "clusterObjectNameUi",
         "type": "Microsoft.Common.TextBox",
         "label": "Cluster Object Name",
@@ -67,30 +91,6 @@
             "options": {
               "icon": "Info",
               "text": "See <a href='https://sc1.checkpoint.com/documents/IaaS/WebAdminGuides/EN/CP_CloudGuard_Network_for_Azure_HA_Cluster/Content/Topics-Azure-HA/Introduction.htm' target='_blank'>CloudGuard Network for Azure administration guide</a> for detailed deployment and configuration steps "
-            }
-          },
-          {
-            "name": "extendedZone",
-            "type": "Microsoft.Common.DropDown",
-            "label": "Extended Zone",
-            "defaultValue": "None",
-            "toolTip": "Deploy in Azure Extended Zone for ultra-low latency edge computing. Los Angeles Extended Zone requires West US region. Perth Extended Zone requires Australia East region. For Extended Zones, only R81.20, R82, and R82.10 are supported with VM size Standard_D4_v4 and disk type StandardSSD_LRS.",
-            "constraints": {
-              "allowedValues": [
-                {
-                  "label": "None",
-                  "value": "None"
-                },
-                {
-                  "label": "Los Angeles (requires West US region)",
-                  "value": "losangeles"
-                },
-                {
-                  "label": "Perth (requires Australia East region)",
-                  "value": "perth"
-                }
-              ],
-              "required": true
             }
           },
           {
@@ -1990,7 +1990,7 @@
     ],
     "outputs": {
       "location": "[location()]",
-      "extendedZone": "[steps('chkp').extendedZone]",
+      "extendedZone": "[basics('extendedZone')]",
       "cloudGuardVersion": "[concat(steps('chkp').cloudGuardVersion, ' - ', coalesce(steps('chkp').R80Offer, 'Bring Your Own License'))]",
       "adminPassword": "[basics('auth').password]",
       "authenticationType": "[basics('auth').authenticationType]",
