@@ -382,7 +382,7 @@
     "isExtendedZoneValid": "[if(equals(parameters('extendedZone'), 'None'), bool('true'), contains(variables('extendedZoneRegionMap')[parameters('extendedZone')], variables('location')))]",
     "selectedZone": "[if(and(not(equals(parameters('extendedZone'), 'None')), variables('isExtendedZoneValid')), parameters('extendedZone'), 'None')]",
     "extendedLocation": "[if(equals(variables('selectedZone'), 'None'), createObject(), createObject('name', variables('selectedZone'), 'type', 'EdgeZone'))]",
-    "networkSetupURL": "[uri(variables('_artifactsLocation'), concat('nestedtemplates/vnet-2-subnet-ha2-', parameters('vnetNewOrExisting'), '.json', parameters('_artifactsLocationSasToken')))]",
+    "networkSetupURL": "[uri(variables('_artifactsLocation'), concat('../nestedtemplates/vnet-2-subnet-ha2-', parameters('vnetNewOrExisting'), '.json', parameters('_artifactsLocationSasToken')))]",
     "elbPublicIPName": "frontend-lb-address",
     "haPublicIPName": "[parameters('vmName')]",
     "offers": {
@@ -762,7 +762,7 @@
     "bootstrapScript64": "[base64(parameters('bootstrapScript'))]",
     "allowUploadDownload": "[parameters('allowDownloadFromUploadToCheckPoint')]",
     "_artifactsLocation": "[if(contains(parameters('_artifactsLocation'),'raw.githubusercontent.com/CheckPointSW/CloudGuardIaaS/master/azure/templates/marketplace'),'https://raw.githubusercontent.com/CheckPointSW/CloudGuardIaaS/master/azure/templates/',parameters('_artifactsLocation'))]",
-    "ExsitingNsgRoleAssignmentURL": "[uri(variables('_artifactsLocation'), concat('nestedtemplates/existing-nsg-RoleAssignment', '.json'))]",
+    "ExsitingNsgRoleAssignmentURL": "[uri(variables('_artifactsLocation'), concat('../nestedtemplates/existing-nsg-RoleAssignment', '.json'))]",
     "sicKey": "[parameters('sicKey')]",
     "installationType": "cluster",
     "internalLBPrivateIPAddress": "[parameters('subnet2StartAddress')]",
