@@ -382,7 +382,7 @@
     "isExtendedZoneValid": "[if(equals(parameters('extendedZone'), 'None'), bool('true'), contains(variables('extendedZoneRegionMap')[parameters('extendedZone')], variables('location')))]",
     "selectedZone": "[if(and(not(equals(parameters('extendedZone'), 'None')), variables('isExtendedZoneValid')), parameters('extendedZone'), 'None')]",
     "extendedLocation": "[if(equals(variables('selectedZone'), 'None'), createObject(), createObject('name', variables('selectedZone'), 'type', 'EdgeZone'))]",
-    "networkSetupURL": "[uri(variables('_artifactsLocation'), concat('../nestedtemplates/vnet-2-subnet-ha2-', parameters('vnetNewOrExisting'), if(not(equals(variables('selectedZone'), 'None')), '-extendedzone1', ''), '.json', parameters('_artifactsLocationSasToken')))]",
+    "networkSetupURL": "[uri(variables('_artifactsLocation'), concat('../nestedtemplates/vnet-2-subnet-ha2-', parameters('vnetNewOrExisting'), '.json', parameters('_artifactsLocationSasToken')))]",
     "elbPublicIPName": "frontend-lb-address",
     "haPublicIPName": "[parameters('vmName')]",
     "offers": {
