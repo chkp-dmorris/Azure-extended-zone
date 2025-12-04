@@ -765,14 +765,14 @@ def set_cluster_ips():
             if flag_put:
                 logger.debug('Updating cluster status file with %s status', IN_PROGRESS)
                 update_cluster_status_file(IN_PROGRESS)
-                
+
                 # Check if this is an Extended Zone resource
                 is_extended_zone = is_extended_zone_resource(peer_nic)
-                
+
                 peer_nic_result = safe_arm_put(peer_nic['id'], peer_nic, f"peer {cni} VIP removal")
                 logger.info('After initiating removal of peer %s [%s]:\n%s', cni,
                             peer_index, json.dumps(peer_nic_result, indent=2))
-                
+
                 # For Extended Zones, if safe_arm_put returned the object (not None),
                 # it means the API limitation was hit but we should continue
                 if is_extended_zone and peer_nic_result is not None:
@@ -838,11 +838,11 @@ def set_cluster_ips():
                     if index == (len(vips) - 1):
                         # Perform the PUT call for the new IPs only after adding all VIPs
                         is_extended_zone = is_extended_zone_resource(my_nic)
-                        
+
                         my_nic_result = safe_arm_put(my_nic['id'], my_nic, f"my {cni} VIP addition")
                         logger.info('After initiating addition of my %s [%s]:\n%s',
                                     cni, my_index, json.dumps(my_nic_result, indent=2))
-                        
+
                         # For Extended Zones, if safe_arm_put returned the object (not None),
                         # it means the API limitation was hit but we consider it successful
                         if is_extended_zone and my_nic_result is not None:
