@@ -698,6 +698,7 @@
       }
     },
     {
+      "condition": "[not(variables('isExtendedZone'))]",
       "type": "Microsoft.Storage/storageAccounts",
       "name": "[variables('storageAccountName')]",
       "apiVersion": "2022-09-01",
@@ -907,12 +908,21 @@
     {
       "type": "Microsoft.Compute/virtualMachines",
       "apiVersion": "2021-07-01",
-      "dependsOn": [
-        "[resourceId('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
-        "[resourceId('Microsoft.Network/networkInterfaces/', variables('nic1Name'))]",
-        "[resourceId('Microsoft.Network/networkInterfaces/', variables('nic2Name'))]",
-        "[resourceId('Microsoft.Compute/images/', variables('customImage'))]"
-      ],
+      "dependsOn": "[
+        if(variables('isExtendedZone'), 
+          createArray(
+            resourceId('Microsoft.Network/networkInterfaces/', variables('nic1Name')),
+            resourceId('Microsoft.Network/networkInterfaces/', variables('nic2Name')),
+            resourceId('Microsoft.Compute/images/', variables('customImage'))
+          ),
+          createArray(
+            resourceId('Microsoft.Storage/storageAccounts/', variables('storageAccountName')),
+            resourceId('Microsoft.Network/networkInterfaces/', variables('nic1Name')),
+            resourceId('Microsoft.Network/networkInterfaces/', variables('nic2Name')),
+            resourceId('Microsoft.Compute/images/', variables('customImage'))
+          )
+        )
+      ]",
       "location": "[variables('location')]",
       "zones": "[variables('zones')]",
       "extendedLocation": "[variables('extendedLocation')]",
