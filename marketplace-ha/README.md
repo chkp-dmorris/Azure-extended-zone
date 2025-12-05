@@ -1,31 +1,38 @@
 
-# Manual Deployment Steps
+# Example Deployment (Azure Extended Zone)
 
-1. Log in to the Microsoft Azure Portal
-2. Register for the extended zone you want
-   - az account set --subscription '9c3f4dac-efbc-4533-acb3-7963594e6a67'
-   - az edge-zones extended-zone register --extended-zone-name 'losangeles'
-   - https://learn.microsoft.com/en-us/azure/extended-zones/request-access?tabs=powershell
+1. Log in and set the subscription
+   ```sh
+   az login
+   az account set --subscription "<subscription-id>"
+   ```
 
-3. Click "Create a resource"
-4. Search for "Template deployment (deploy using custom templates)" and click "Create"
-5. Click "Build your own template in the editor"
-6. Load the "mainTemplate.json" file of the desired template and click "Save"
+2. Register the Extended Zone you plan to use (examples below)
+   ```sh
+   # Los Angeles (parent region: West US)
+   az edge-zones extended-zone register --extended-zone-name losangeles
 
-7. Select the extended zone you registered for:
-   - If you select 'losangeles' as the extended zone, you must select 'West US' as the region.
-   - If you select 'perth' as the extended zone, you must select 'Australia East' as the region.
+   # Perth (parent region: Australia East)
+   az edge-zones extended-zone register --extended-zone-name perth
+   ```
 
-8. Enter the desired template parameters
+3. Deploy CloudGuard from the Azure Portal using the UI-enabled templates
+   - High Availability (HA) Cluster: [Deploy to Azure](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fchkp-dmorris%2FAzure-extended-zone%2Frefs%2Fheads%2Fmain%2Fmarketplace-ha%2FmainTemplate.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2Fchkp-dmorris%2FAzure-extended-zone%2Frefs%2Fheads%2Fmain%2Fmarketplace-ha%2FcreateUiDefinition.json)
+   - Single Gateway: [Deploy to Azure](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fchkp-dmorris%2FAzure-extended-zone%2Frefs%2Fheads%2Fmain%2Fmarketplace-single%2FmainTemplate.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2Fchkp-dmorris%2FAzure-extended-zone%2Frefs%2Fheads%2Fmain%2Fmarketplace-single%2FcreateUiDefinition.json)
 
-    Must select:
-   - R81.20 or R82 BYOL/PAYG
-   - VM size- Standard_D4_v4
-   - Disk Type- StandardSSD_LRS
-      
-9. Replace the "_artifacts Location" property with:
-   https://raw.githubusercontent.com/chkp-dmorris/Azure-extended-zone/main/
-10. Click Purchase to deploy the solution
+   If you manually paste `mainTemplate.json` into the portal editor, set `_artifactsLocation` to:
+   `https://raw.githubusercontent.com/chkp-dmorris/Azure-extended-zone/main/`
+
+4. Important: choose only supported VM size and disk types for Extended Zones
+   - Recommended for Extended Zones: `Standard_D4_v4`
+   - Disk type: `StandardSSD_LRS` (or `Premium_SSD` where available)
+   - Selecting unsupported SKUs will fail validation/provisioning; check Azure Extended Zone SKU availability for your target region.
+
+5. Region/zone pairing rules
+   - `losangeles` requires region `West US`
+   - `perth` requires region `Australia East`
+
+Repository: https://github.com/chkp-dmorris/Azure-extended-zone
 
 # Check Point CloudGuard Network Security High Availability for Azure
 
