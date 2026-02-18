@@ -5,6 +5,10 @@
     "location": {
       "type": "string"
     },
+    "extendedLocation": {
+      "type": "object",
+      "defaultValue": {}
+    },
     "virtualNetworkName": {
       "type": "string",
       "metadata": {
@@ -41,6 +45,7 @@
       "condition": "[parameters('deployNSG')]",
       "apiVersion": "2020-06-01",
       "location": "[parameters('location')]",
+      "extendedLocation": "[if(empty(parameters('extendedLocation')), null(), parameters('extendedLocation'))]",
       "name": "[parameters('NewNsgName')]",
       "properties": {
         "securityRules": [
