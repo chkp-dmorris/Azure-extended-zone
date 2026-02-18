@@ -118,6 +118,10 @@
                 {
                   "label": "R82",
                   "value": "R82"
+                },
+                {
+                  "label": "R82.10",
+                  "value": "R82.10"
                 }
               ]
             }
@@ -1029,7 +1033,7 @@
             "name": "installationType",
             "type": "Microsoft.Common.DropDown",
             "label": "Installation type",
-            "visible": "[or(equals(steps('chkp').cloudGuardVersion, 'R81.10'), equals(steps('chkp').cloudGuardVersion, 'R81.20'), equals(steps('chkp').cloudGuardVersion, 'R82'))]",
+            "visible": "[or(equals(steps('chkp').cloudGuardVersion, 'R81.10'), equals(steps('chkp').cloudGuardVersion, 'R81.20'), equals(steps('chkp').cloudGuardVersion, 'R82'), equals(steps('chkp').cloudGuardVersion, 'R82.10'))]",
             "defaultValue": "Gateway only",
             "toolTip": "Select the type of deployment",
             "constraints": {
@@ -1055,7 +1059,7 @@
               "regex": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/([0-9]|[1-2][0-9]|3[0-2]))$",
               "validationMessage": "Enter a valid IPv4 network CIDR"
             },
-            "visible": "[and(or(equals(steps('chkp').cloudGuardVersion, 'R81.10'), equals(steps('chkp').cloudGuardVersion, 'R81.20'), equals(steps('chkp').cloudGuardVersion, 'R82')), equals(steps('chkp-advanced').installationType, 'standalone'))]"
+            "visible": "[and(or(equals(steps('chkp').cloudGuardVersion, 'R81.10'), equals(steps('chkp').cloudGuardVersion, 'R81.20'), equals(steps('chkp').cloudGuardVersion, 'R82'), equals(steps('chkp').cloudGuardVersion, 'R82.10')), equals(steps('chkp-advanced').installationType, 'standalone'))]"
           },
           {
             "name": "adminShell",
@@ -1087,7 +1091,7 @@
           {
             "name": "standaloneValidation",
             "type": "Microsoft.Common.InfoBox",
-            "visible": "[and(equals(steps('chkp-advanced').installationType, 'standalone'), not(and(equals(steps('chkp').R80Offer, 'Bring Your Own License'),or(equals(steps('chkp').cloudGuardVersion, 'R81.10'), equals(steps('chkp').cloudGuardVersion, 'R81.20'), equals(steps('chkp').cloudGuardVersion, 'R82')))))]",
+            "visible": "[and(equals(steps('chkp-advanced').installationType, 'standalone'), not(and(equals(steps('chkp').R80Offer, 'Bring Your Own License'),or(equals(steps('chkp').cloudGuardVersion, 'R81.10'), equals(steps('chkp').cloudGuardVersion, 'R81.20'), equals(steps('chkp').cloudGuardVersion, 'R82'), equals(steps('chkp').cloudGuardVersion, 'R82.10')))))]",
             "options": {
               "icon": "Error",
               "text": "Standalone deployment is ONLY supported for CloudGuard versions R81.10, R81.20 and R82 Bring Your Own License."
