@@ -5,6 +5,10 @@
     "location": {
       "type": "string"
     },
+    "extendedLocation": {
+      "type": "object",
+      "defaultValue": {}
+    },
     "virtualNetworkName": {
       "type": "string",
       "metadata": {
