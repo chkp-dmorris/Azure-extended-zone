@@ -1,0 +1,302 @@
+--- marketplace-ha/azure_ha_test.py	2025-12-03 12:08:35
++++ /tmp/cge-remote/azure/azure_ha_test.py	2025-12-08 11:23:16
+@@ -20,14 +20,10 @@
+ 
+ ARM_VERSIONS = {
+     'stack': collections.OrderedDict([
+-        ('resources', '?api-version=2021-04-01'),
+-        ('network', '?api-version=2024-05-01'),
+-        ('compute', '?api-version=2019-07-01'),
++        ('resources', '?api-version=2017-10-01'),
+     ]),
+     'ha': collections.OrderedDict([
+-        ('resources', '?api-version=2021-04-01'),
+-        ('network', '?api-version=2024-05-01'),
+-        ('compute', '?api-version=2019-07-01'),
++        ('resources', '?api-version=2019-07-01'),
+     ])}
+ 
+ os.environ['AZURE_NO_DOT'] = 'true'
+@@ -61,167 +57,6 @@
+     sys.stderr.write(msg)
+ 
+ 
+-def is_extended_zone_resource(obj):
+-    """Check if a resource is in an Extended Zone"""
+-    # Method 1: Check for extendedLocation property
+-    if 'extendedLocation' in obj and obj['extendedLocation']:
+-        return True
+-
+-    # Method 2: Check for vnetExtendedLocation in properties
+-    if (obj.get('type') == 'Microsoft.Network/networkInterfaces' and
+-            'properties' in obj and
+-            'vnetExtendedLocation' in obj['properties'] and
+-            obj['properties']['vnetExtendedLocation']):
+-        return True
+-
+-    # Method 3: For network interfaces, check subnet Extended Zone info
+-    if (obj.get('type') == 'Microsoft.Network/networkInterfaces' and
+-            'properties' in obj and
+-            'ipConfigurations' in obj['properties'] and
+-            obj['properties']['ipConfigurations']):
+-        try:
+-            ip_config = obj['properties']['ipConfigurations'][0]
+-            if ('properties' in ip_config and
+-                    'subnet' in ip_config['properties']):
+-                subnet_id = ip_config['properties']['subnet']['id']
+-                subnet_obj = azure.arm(
+-                    'GET',
+-                    subnet_id + get_api_version('network'))[1]
+-
+-                if (('extendedLocation' in subnet_obj and
+-                        subnet_obj['extendedLocation']) or
+-                    ('properties' in subnet_obj and
+-                        'extendedLocation' in subnet_obj['properties'] and
+-                        subnet_obj['properties']['extendedLocation'])):
+-                    return True
+-        except Exception:
+-            pass
+-
+-    return False
+-
+-
+-def get_api_version(resource_type):
+-    """Get the appropriate API version for a resource type"""
+-    return ARM_VERSIONS.get(resource_type, ARM_VERSIONS['resources'])
+-
+-
+-def safe_arm_put(resource_id, body_obj, description=""):
+-    """Safely perform ARM PUT with Extended Zone awareness"""
+-
+-    try:
+-        # Convert body_obj to JSON string if it's not already
+-        if isinstance(body_obj, (dict, list)):
+-            body_json = json.dumps(body_obj)
+-        else:
+-            body_json = body_obj
+-
+-        # Check if this is an Extended Zone resource
+-        extended_zone_context = None
+-        if isinstance(body_obj, dict):
+-            # Check for Extended Zone indicators
+-            if 'extendedLocation' in body_obj and body_obj['extendedLocation']:
+-                extended_zone_context = body_obj['extendedLocation']
+-                log(f'Extended Zone detected for {description}: '
+-                    f'{extended_zone_context}\n')
+-            elif ('properties' in body_obj and
+-                  'vnetExtendedLocation' in body_obj['properties'] and
+-                  body_obj['properties']['vnetExtendedLocation']):
+-                # Convert vnetExtendedLocation to extendedLocation format
+-                vnet_ext_loc = body_obj['properties']['vnetExtendedLocation']
+-                extended_zone_context = {
+-                    'name': vnet_ext_loc.get('name'),
+-                    'type': vnet_ext_loc.get('type')
+-                }
+-                log(f'Extended Zone via vnetExtendedLocation for '
+-                    f'{description}: {extended_zone_context}\n')
+-
+-        # If Extended Zone context detected, try enhanced ARM call
+-        if extended_zone_context:
+-            try:
+-                log(f'Attempting Enhanced Extended Zone ARM PUT for '
+-                    f'{description}\n')
+-
+-                # Ensure extendedLocation is in request body
+-                if (isinstance(body_obj, dict) and
+-                        'extendedLocation' not in body_obj):
+-                    body_obj_enhanced = body_obj.copy()
+-                    body_obj_enhanced['extendedLocation'] = \
+-                        extended_zone_context
+-                    body_json_enhanced = json.dumps(body_obj_enhanced)
+-                else:
+-                    body_json_enhanced = body_json
+-
+-                # Determine API version based on resource type
+-                api_version = ARM_VERSIONS['resources']
+-                if 'Microsoft.Network/' in resource_id:
+-                    api_version = ARM_VERSIONS['network']
+-                elif 'Microsoft.Compute/' in resource_id:
+-                    api_version = ARM_VERSIONS['compute']
+-
+-                # Try with Extended Zone context
+-                result = azure.arm('PUT', resource_id + api_version,
+-                                   body_json_enhanced)
+-
+-                # Handle response format
+-                headers = result[0] if result[0] else {}
+-                response_code = headers.get('code', None) if \
+-                    isinstance(headers, dict) else result[0]
+-
+-                if str(response_code) == '200':
+-                    log(f'✅ Extended Zone ARM PUT succeeded for '
+-                        f'{description}\n')
+-                    return result[1]
+-                else:
+-                    log(f'Extended Zone ARM PUT failed for '
+-                        f'{description} - HTTP {response_code}\n')
+-
+-            except rest.RequestException as e:
+-                if e.code == 409 and 'InvalidExtendedLocation' in str(e):
+-                    log(f'Extended Zone ARM PUT failed for '
+-                        f'{description}: {e}\n')
+-                    # Fall through to handle limitation
+-                else:
+-                    # Re-raise non-Extended Zone errors
+-                    raise
+-
+-        # Standard ARM PUT operation
+-        api_version = ARM_VERSIONS['resources']
+-        if 'Microsoft.Network/' in resource_id:
+-            api_version = ARM_VERSIONS['network']
+-        elif 'Microsoft.Compute/' in resource_id:
+-            api_version = ARM_VERSIONS['compute']
+-
+-        result = azure.arm('PUT', resource_id + api_version, body_json)
+-
+-        # Handle response format
+-        headers = result[0] if result[0] else {}
+-        response_code = headers.get('code', None) if \
+-            isinstance(headers, dict) else result[0]
+-
+-        if str(response_code) != '200':
+-            log(f"Failed {description} - HTTP {response_code}: {result}\n")
+-            return None
+-        log(f"✅ {description} succeeded\n")
+-        return result[1]
+-
+-    except rest.RequestException as e:
+-        # Handle Extended Zone specific errors
+-        if (e.code == 409 and 'InvalidExtendedLocation' in str(e)):
+-            log('Extended Zone conflict detected for %s: %s\n' %
+-                (description, str(e)))
+-            log('Extended Zone limitation - operation cannot be '
+-                'performed via standard ARM API\n')
+-            log('This is a known Azure Extended Zone limitation\n')
+-
+-            # Return modified object to continue test operation
+-            log('Returning modified object to continue test operation\n')
+-            return body_obj
+-        else:
+-            # Re-raise other errors as normal
+-            log(f"Error in {description}: {str(e)}\n")
+-            raise
+-
+-
+ def test_rw(rid, allow_not_found=False, test_write=True):
+     """#TODO fixDocstring"""
+     components = rid.split('/')
+@@ -230,52 +65,22 @@
+     log('Resource group: %s\n' % components[4])
+     log('Type          : %s/%s\n' % (components[6], components[7]))
+     log('Name          : %s\n' % components[8])
+-
+-    # Determine API version based on resource type
+-    api_version = ARM_VERSIONS['resources']
+-    if 'Microsoft.Network/' in rid:
+-        api_version = ARM_VERSIONS['network']
+-    elif 'Microsoft.Compute/' in rid:
+-        api_version = ARM_VERSIONS['compute']
+-
+     try:
+-        obj = azure.arm('GET', rid + api_version)[1]
++        obj = azure.arm('GET', rid + ARM_VERSIONS['resources'])[1]
+     except rest.RequestException as e:
+         if allow_not_found and e.code == 404:
+             return None
+         log('Attempting to read - [%s]\n' % e.reason)
+         raise
+     log('Attempting to read - [OK]\n')
+-
+     if test_write:
+-        # Check if this is an Extended Zone resource
+-        if is_extended_zone_resource(obj):
+-            log('Attempting to write - [Extended Zone detected]\n')
+-            # Use safe_arm_put for Extended Zone resources
+-            try:
+-                safe_arm_put(rid, obj, "Extended Zone test write")
+-                log('- [OK - Extended Zone]\n')
+-            except rest.RequestException as e:
+-                if (e.code == 409 and 'InvalidExtendedLocation' in str(e)):
+-                    log('- [OK - Extended Zone limitation detected]\n')
+-                else:
+-                    log('- [%s]\n' % e.reason)
+-                    raise
+-        else:
+-            # Standard write test for non-Extended Zone resources
+-            log('Attempting to write ')
+-            try:
+-                azure.arm('PUT', rid + api_version, json.dumps(obj))
+-                log('- [OK]\n')
+-            except rest.RequestException as e:
+-                # Check if Extended Zone resource that we missed
+-                if (e.code == 409 and
+-                        'InvalidExtendedLocation' in str(e) and
+-                        'already exists in extended location' in str(e)):
+-                    log('- [OK - Extended Zone detected via error]\n')
+-                else:
+-                    log('- [%s]\n' % e.reason)
+-                    raise
++        log('Attempting to write ')
++        try:
++            azure.arm('PUT', rid + ARM_VERSIONS['resources'], json.dumps(obj))
++        except rest.RequestException as e:
++            log('- [%s]\n' % e.reason)
++            raise
++        log('- [OK]\n')
+     return obj
+ 
+ 
+@@ -288,7 +93,7 @@
+         for ni in nis:
+             if ni['properties'].get('primary'):
+                 break
+-    return azure.arm('GET', ni['id'] + ARM_VERSIONS['network'])[1]
++    return azure.arm('GET', ni['id'])[1]
+ 
+ 
+ def test_cluster_ip():
+@@ -327,7 +132,7 @@
+     """#TODO fixDocstring"""
+     local_vm = azure.arm('GET', conf['baseId'] +
+                          'microsoft.compute/virtualmachines/' +
+-                         conf['hostname'] + ARM_VERSIONS['compute'])[1]
++                         conf['hostname'])[1]
+     my_nic = get_vm_primary_nic(local_vm)
+     subnet_id = my_nic['properties']['ipConfigurations'][0][
+         'properties']['subnet']['id']
+@@ -349,7 +154,7 @@
+     if vnet_id:
+         return vnet_id
+     me = azure.arm('GET', conf['baseId'] +
+-                   'microsoft.compute/virtualmachines/' + conf['hostname'] + ARM_VERSIONS['compute'])[1]
++                   'microsoft.compute/virtualmachines/' + conf['hostname'])[1]
+     my_nic = get_vm_primary_nic(me)
+     subnet_id = my_nic['properties']['ipConfigurations'][0][
+         'properties']['subnet']['id']
+@@ -369,7 +174,7 @@
+             log('peered vnet %s in state %s ignored' % (vnet_id, state))
+             continue
+         try:
+-            vnet = azure.arm('GET', vnet_id + ARM_VERSIONS['network'])[1]
++            vnet = azure.arm('GET', vnet_id)[1]
+         except Exception:
+             log('\nFailed to retrieve peered network %s' % vnet_id)
+             log('\n%s' % traceback.format_exc())
+@@ -384,7 +189,7 @@
+     route_table_ids = set()
+ 
+     vnet_id = get_vnet_id()
+-    vnet = azure.arm('GET', vnet_id + ARM_VERSIONS['network'])[1]
++    vnet = azure.arm('GET', vnet_id)[1]
+ 
+     route_table_ids |= get_route_table_ids_for_vnet(vnet)
+     route_table_ids |= get_route_table_ids_for_peering(vnet)
+@@ -573,7 +378,7 @@
+     for vmname in [conf['hostname'], conf['peername']]:
+         log('Getting information about the VM %s...\n' % vmname)
+         vm = azure.arm('GET', conf['baseId'] +
+-                       'microsoft.compute/virtualmachines/' + vmname + ARM_VERSIONS['compute'])[1]
++                       'microsoft.compute/virtualmachines/' + vmname)[1]
+         if templateName != 'stack-ha':
+             for interface_id in \
+                     vm['properties']['networkProfile']['networkInterfaces']:

@@ -9,3 +9,5 @@
 
 # Ignore tools folder
 tools/
+EXTENDED_ZONES_TEST_PLAN.md
+.gitignore
